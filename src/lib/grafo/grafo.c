@@ -10,63 +10,6 @@
 static unsigned int next_id = 0;
 
 /*
- * Estrutura principal do grafo.
- *
- * flags:
- *   Configurações do grafo (direcionado, ponderado, etc.).
- *
- * vertices:
- *   Lista contendo todos os vértices pertencentes ao grafo.
- */
-struct grafo {
-	uint8_t flags;
-	struct list_head vertices;
-};
-
-/*
- * Representa uma aresta saindo de um vértice.
- *
- * peso:
- *   Peso/custo associado à conexão.
- *
- * para:
- *   Vértice de destino.
- *
- * nos:
- *   Nó utilizado para encadear a aresta na lista
- *   de arestas do vértice de origem.
- */
-struct aresta {
-	int peso;
-	struct vertice *para;
-	struct list_head nos;
-};
-
-/*
- * Representa um vértice do grafo.
- *
- * id:
- *   Identificador único.
- *
- * nome:
- *   Nome legível do vértice.
- *
- * arestas:
- *   Lista de arestas de saída deste vértice.
- *
- * nos:
- *   Nó utilizado para encadear o vértice na lista
- *   global de vértices do grafo.
- */
-struct vertice {
-	unsigned int id;
-	char nome[MAXIMO_VERTICE_NOME];
-	struct list_head arestas;
-	struct list_head nos;
-};
-
-
-/*
  * Cria um novo grafo vazio.
  *
  * Inicializa a lista de vértices e armazena as flags
@@ -115,4 +58,74 @@ struct vertice *criar_vertice(struct grafo *grafo, char vertice_nome[MAXIMO_VERT
 	}
 
 	return vertice;
+}
+
+/*
+ * Cria uma aresta entre dois vértices.
+ *
+ * de   -> vértice de origem
+ * para -> vértice de destino
+ *
+ * Exemplo:
+ *
+ * A ----> B
+ *
+ * É criada uma nova estrutura aresta dentro da
+ * lista de arestas de A.
+ *
+ * Retorna:
+ *   0 em caso de sucesso.
+ *   1 em caso de falha.
+ */
+int grafo_adicionar_aresta(struct vertice *de, struct vertice *para, int peso) {
+	struct aresta *aresta = malloc(sizeof(struct aresta));
+
+	if (aresta) {
+		aresta->peso = peso;
+		aresta->para = para;
+
+		INIT_LIST_HEAD(&aresta->nos);
+
+		list_add_tail(&aresta->nos, &de->arestas);
+
+		return 0;
+	}
+
+	return 1;
+}
+
+/*
+ * Remove uma aresta específica.
+ *
+ * Procura uma conexão:
+ *
+ * de -> para
+ *
+ * Caso encontrada:
+ *   - remove da lista
+ *   - libera memória
+ *
+ * Complexidade:
+ *   O(E)
+ *
+ * onde E é o número de arestas de saída
+ * do vértice de origem.
+ *
+ * Retorna:
+ *   0 se removida.
+ *   1 se não encontrada.
+ */
+int grafo_remove_aresta(struct vertice *de, struct vertice *para) {
+	struct aresta *aresta;
+	struct aresta *tmp;
+
+	list_for_each_entry_safe(aresta, tmp, &de->arestas, nos) {
+		if (aresta->para == para) {
+			list_remove(&aresta->nos);
+			free(aresta);
+			return 0;
+		}
+	}
+
+	return 1;
 }
