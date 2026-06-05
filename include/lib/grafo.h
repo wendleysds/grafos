@@ -75,7 +75,7 @@ struct vertice* criar_vertice(struct grafo* grafo, char vertice_nome[MAXIMO_VERT
 struct vertice* procura_vertice(struct grafo* grafo, char vertice_nome[MAXIMO_VERTICE_NOME]);
 void destruir_vertice(struct grafo* grafo, struct vertice* vertice);
 
-int grafo_adicionar_aresta(struct vertice* de, struct vertice* para, int peso);
-int grafo_remove_aresta(struct vertice* de, struct vertice* para);
+int grafo_adicionar_aresta(struct grafo* grafo, struct vertice* de, struct vertice* para, int peso);
+int grafo_remove_aresta(struct grafo* grafo, struct vertice* de, struct vertice* para);
 
 #endif

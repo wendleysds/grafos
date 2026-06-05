@@ -70,25 +70,59 @@ struct vertice *criar_vertice(struct grafo *grafo, char vertice_nome[MAXIMO_VERT
  *
  * A ----> B
  *
+ * Caso for um grafo não direcionado:
+ *
+ * A <----> B
+ *
  * É criada uma nova estrutura aresta dentro da
- * lista de arestas de A.
+ * lista de arestas de A. Caso não direcionado
+ * cria-se uma estrutura na lista de arestas de B.
  *
  * Retorna:
  *   0 em caso de sucesso.
  *   1 em caso de falha.
  */
-int grafo_adicionar_aresta(struct vertice *de, struct vertice *para, int peso) {
+int grafo_adicionar_aresta(struct grafo* grafo, struct vertice* de, struct vertice* para, int peso) {
 	struct aresta *aresta = malloc(sizeof(struct aresta));
 
-	if (aresta) {
-		aresta->peso = peso;
-		aresta->para = para;
+	if(grafo->flags & FLAG_DIRECIONADO){
+		if (aresta) {
+			aresta->peso = peso;
+			aresta->para = para;
 
-		INIT_LIST_HEAD(&aresta->nos);
+			INIT_LIST_HEAD(&aresta->nos);
 
-		list_add_tail(&aresta->nos, &de->arestas);
+			list_add_tail(&aresta->nos, &de->arestas);
 
-		return 0;
+			return 0;
+		}
+	}else{
+		/* Para grafos não direcionados, criamos a aresta em ambos os sentidos */
+		struct aresta *aresta_reversa = malloc(sizeof(struct aresta));
+
+		if (aresta && aresta_reversa) {
+			/* A -> B */
+			aresta->peso = peso;
+			aresta->para = para;
+			INIT_LIST_HEAD(&aresta->nos);
+			list_add_tail(&aresta->nos, &de->arestas);
+
+			/* B -> A */
+			aresta_reversa->peso = peso;
+			aresta_reversa->para = de;
+			INIT_LIST_HEAD(&aresta_reversa->nos);
+			list_add_tail(&aresta_reversa->nos, &para->arestas);
+
+			return 0;
+		}
+
+		if (aresta) {
+			free(aresta);
+		}
+
+		if (aresta_reversa) {
+			free(aresta_reversa);
+		}
 	}
 
 	return 1;
@@ -101,12 +135,20 @@ int grafo_adicionar_aresta(struct vertice *de, struct vertice *para, int peso) {
  *
  * de -> para
  *
+ * E uma conexão(grafo não direcionados):
+ *
+ * de -> para
+ * para -> de
+ *
  * Caso encontrada:
  *   - remove da lista
  *   - libera memória
  *
  * Complexidade:
  *   O(E)
+ *
+ * Complexidade total para grafos não direcionados:
+ *   O(E_de + E_para)
  *
  * onde E é o número de arestas de saída
  * do vértice de origem.
@@ -115,15 +157,34 @@ int grafo_adicionar_aresta(struct vertice *de, struct vertice *para, int peso) {
  *   0 se removida.
  *   1 se não encontrada.
  */
-int grafo_remove_aresta(struct vertice *de, struct vertice *para) {
+int grafo_remove_aresta(struct grafo* grafo, struct vertice* de, struct vertice* para) {
 	struct aresta *aresta;
 	struct aresta *tmp;
 
-	list_for_each_entry_safe(aresta, tmp, &de->arestas, nos) {
-		if (aresta->para == para) {
-			list_remove(&aresta->nos);
-			free(aresta);
-			return 0;
+	if(grafo->flags & FLAG_DIRECIONADO){
+		/* Grafos direcionados: remover apenas de -> para */
+		list_for_each_entry_safe(aresta, tmp, &de->arestas, nos) {
+			if (aresta->para == para) {
+				list_remove(&aresta->nos);
+				free(aresta);
+				return 0;
+			}
+		}
+	}else{
+		list_for_each_entry_safe(aresta, tmp, &de->arestas, nos) {
+			if (aresta->para == para) {
+				list_remove(&aresta->nos);
+				free(aresta);
+				break;
+			}
+		}
+
+		list_for_each_entry_safe(aresta, tmp, &para->arestas, nos) {
+			if (aresta->para == de) {
+				list_remove(&aresta->nos);
+				free(aresta);
+				return 0;
+			}
 		}
 	}
 
