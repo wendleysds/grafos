@@ -190,3 +190,57 @@ int grafo_remove_aresta(struct grafo* grafo, struct vertice* de, struct vertice*
 
 	return 1;
 }
+
+/*
+ * Remove todas as arestas que apontam para o vértice informado.
+ *
+ * Exemplo:
+ *
+ * A -> B
+ * C -> B
+ *
+ * Ao isolar B:
+ *
+ * A -> NULL
+ * C -> NULL
+ */
+static void isola_vertice(struct grafo *grafo, struct vertice *vertice) {
+  struct vertice *v;
+
+  list_for_each_entry(v, &grafo->vertices, nos) {
+    grafo_remove_aresta(grafo, v, vertice);
+  }
+}
+
+/*
+ * Remove e libera todas as arestas de saída
+ * pertencentes ao vértice.
+ */
+static void libera_todas_arestas(struct vertice *vertice) {
+  struct aresta *aresta;
+  struct aresta *tmp;
+
+  list_for_each_entry_safe(aresta, tmp, &vertice->arestas, nos) {
+    list_remove(&aresta->nos);
+    free(aresta);
+  }
+}
+
+/*
+ * Remove um vértice do grafo.
+ *
+ * Processo:
+ *
+ * 1. Remove todas as arestas que apontam para ele.
+ * 2. Remove todas as suas arestas de saída.
+ * 3. Remove o vértice da lista do grafo.
+ * 4. Libera a memória do vertice.
+ */
+void destruir_vertice(struct grafo *grafo, struct vertice *vertice) {
+  isola_vertice(grafo, vertice);
+  libera_todas_arestas(vertice);
+
+  list_remove(&vertice->nos);
+
+  free(vertice);
+}
