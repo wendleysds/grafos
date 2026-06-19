@@ -1,10 +1,10 @@
 #include <lib/grafo.h>
+#include <lib/id.h>
 #include <list.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 static struct grafo grafo;
-
 
 static inline struct vertice* tenta_criar_vertice(char* vertice_nome){
 	struct vertice* vertice = criar_vertice(&grafo, vertice_nome);
@@ -24,6 +24,8 @@ static inline void tenta_adicionar_aresta(struct vertice *de, struct vertice *pa
 }
 
 int main(){
+	reset_id();
+
 	grafo.flags = FLAG_DIRECIONADO;
 	INIT_LIST_HEAD(&grafo.vertices);
 

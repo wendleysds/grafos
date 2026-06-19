@@ -1,4 +1,5 @@
 #include <lib/grafo.h>
+#include <lib/id.h>
 #include <list.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,7 +8,6 @@
  * Identificador global utilizado para gerar IDs únicos
  * para cada vértice criado.
  */
-static unsigned int next_id = 0;
 
 /*
  * Cria um novo grafo vazio.
@@ -46,7 +46,7 @@ struct vertice *criar_vertice(struct grafo *grafo, char vertice_nome[MAXIMO_VERT
 	struct vertice *vertice = malloc(sizeof(struct vertice));
 
 	if (vertice) {
-		vertice->id = next_id++;
+		vertice->id = next_id();
 
 		strncpy(vertice->nome, vertice_nome, MAXIMO_VERTICE_NOME - 1);
 		vertice->nome[MAXIMO_VERTICE_NOME - 1] = '\0';
