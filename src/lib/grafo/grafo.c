@@ -5,11 +5,6 @@
 #include <string.h>
 
 /*
- * Identificador global utilizado para gerar IDs únicos
- * para cada vértice criado.
- */
-
-/*
  * Cria um novo grafo vazio.
  *
  * Inicializa a lista de vértices e armazena as flags
@@ -19,15 +14,31 @@
  *   Ponteiro para o grafo criado.
  *   NULL em caso de falha de alocação.
  */
-struct grafo *criar_grafo(uint8_t flags) {
+struct grafo *criar_grafo(const char nome[MAXIMO_VERTICE_NOME], uint8_t flags) {
 	struct grafo *grafo = malloc(sizeof(struct grafo));
 
 	if (grafo) {
+		strncpy(grafo->nome, nome, MAXIMO_VERTICE_NOME - 1);
+		grafo->nome[MAXIMO_VERTICE_NOME - 1] = '\0';
+
 		grafo->flags = flags;
 		INIT_LIST_HEAD(&grafo->vertices);
+		INIT_LIST_HEAD(&grafo->lista);
 	}
 
 	return grafo;
+}
+
+/*
+ * Destrói todas as vértices de um grafo e sua
+ * própria estrutura
+ */
+void destruir_grafo(struct grafo* grafo){
+	struct vertice* vertice;
+	struct vertice* tmp;
+	list_for_each_entry_safe(vertice, tmp, &grafo->vertices, nos){
+		destruir_vertice(grafo, vertice);
+	}
 }
 
 /*
@@ -42,7 +53,7 @@ struct grafo *criar_grafo(uint8_t flags) {
  *   Ponteiro para o vértice criado.
  *   NULL em caso de erro.
  */
-struct vertice *criar_vertice(struct grafo *grafo, char vertice_nome[MAXIMO_VERTICE_NOME]) {
+struct vertice *criar_vertice(struct grafo *grafo, const char vertice_nome[MAXIMO_VERTICE_NOME]) {
 	struct vertice *vertice = malloc(sizeof(struct vertice));
 
 	if (vertice) {
@@ -93,6 +104,10 @@ int grafo_adicionar_aresta(struct grafo *grafo, struct vertice *de, struct verti
 				return 1;
 			}
 		}
+	}
+
+	if(de == para){
+		return 1;
 	}
 
 	aresta = malloc(sizeof(*aresta));
@@ -156,35 +171,45 @@ int grafo_adicionar_aresta(struct grafo *grafo, struct vertice *de, struct verti
 int grafo_remove_aresta(struct grafo* grafo, struct vertice* de, struct vertice* para) {
 	struct aresta *aresta;
 	struct aresta *tmp;
+	int encontrado = 0;
 
-	if(grafo->flags & FLAG_DIRECIONADO){
-		/* Grafos direcionados: remover apenas de -> para */
-		list_for_each_entry_safe(aresta, tmp, &de->arestas, nos) {
-			if (aresta->para == para) {
-				list_remove(&aresta->nos);
-				free(aresta);
-				return 0;
-			}
+	list_for_each_entry_safe(aresta, tmp, &de->arestas, nos) {
+		if (aresta->para == para) {
+			list_remove(&aresta->nos);
+			free(aresta);
+			encontrado = 1;
+			break;
 		}
-	}else{
-		list_for_each_entry_safe(aresta, tmp, &de->arestas, nos) {
-			if (aresta->para == para) {
-				list_remove(&aresta->nos);
-				free(aresta);
-				break;
-			}
-		}
+	}
 
+	if(!(grafo->flags & FLAG_DIRECIONADO)){
+
+		if(!encontrado) return 1;
+		encontrado = 0;
+
+		/* Grafos não direcionados remove apenas para -> de tambem */
 		list_for_each_entry_safe(aresta, tmp, &para->arestas, nos) {
 			if (aresta->para == de) {
 				list_remove(&aresta->nos);
 				free(aresta);
-				return 0;
+				encontrado = 1;
+				break;
 			}
 		}
 	}
 
-	return 1;
+	return !encontrado;
+}
+
+struct vertice* procura_vertice(struct grafo* grafo, const char vertice_nome[MAXIMO_VERTICE_NOME]){
+	struct vertice* vertice;
+	list_for_each_entry(vertice, &grafo->vertices, nos){
+		if(strncmp(vertice->nome, vertice_nome, MAXIMO_VERTICE_NOME) == 0){
+			return vertice;
+		}
+	}
+
+	return NULL;
 }
 
 /*

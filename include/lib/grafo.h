@@ -12,7 +12,6 @@
 #define FLAG_PONDERADO   BIT(1)
 #define FLAG_DIRECIONADO BIT(2)
 #define FLAG_MULTIGRAFO  BIT(3)
-#define FLAG_CICLICO BIT(3)
 
 /*
  * Estrutura principal do grafo.
@@ -20,12 +19,20 @@
  * flags:
  *   Configurações do grafo (direcionado, ponderado, etc.).
  *
+ * nome:
+ *   Nome do grafo.
+ *
  * vertices:
  *   Lista contendo todos os vértices pertencentes ao grafo.
+ *
+ * lista:
+ *   Lista contendo todos os grafos
  */
 struct grafo {
 	uint8_t flags;
+	char nome[MAXIMO_VERTICE_NOME];
 	struct list_head vertices;
+	struct list_head lista;
 };
 
 /*
@@ -70,11 +77,11 @@ struct vertice {
 	struct list_head nos;
 };
 
-struct grafo* criar_grafo(uint8_t flags);
+struct grafo* criar_grafo(const char nome[MAXIMO_VERTICE_NOME], uint8_t flags);
 void destruir_grafo(struct grafo* grafo);
 
-struct vertice* criar_vertice(struct grafo* grafo, char vertice_nome[MAXIMO_VERTICE_NOME]);
-struct vertice* procura_vertice(struct grafo* grafo, char vertice_nome[MAXIMO_VERTICE_NOME]);
+struct vertice* criar_vertice(struct grafo* grafo, const char vertice_nome[MAXIMO_VERTICE_NOME]);
+struct vertice* procura_vertice(struct grafo* grafo, const char vertice_nome[MAXIMO_VERTICE_NOME]);
 void destruir_vertice(struct grafo* grafo, struct vertice* vertice);
 
 int grafo_adicionar_aresta(struct grafo* grafo, struct vertice* de, struct vertice* para, int peso);
