@@ -78,4 +78,8 @@ void destruir_vertice(struct grafo* grafo, struct vertice* vertice);
 int grafo_adicionar_aresta(struct grafo* grafo, struct vertice* de, struct vertice* para, int peso);
 int grafo_remove_aresta(struct grafo* grafo, struct vertice* de, struct vertice* para);
 
+void mostrar_grafo_lista(struct grafo* grafo);
+void mostrar_grafo_matriz(struct grafo* grafo);
+void mostrar_grafo_imagem(struct grafo* grafo);
+
 #endif
