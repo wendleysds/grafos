@@ -11,6 +11,8 @@
 /* Flags bitwise */
 #define FLAG_PONDERADO   BIT(1)
 #define FLAG_DIRECIONADO BIT(2)
+#define FLAG_MULTIGRAFO  BIT(3)
+#define FLAG_CICLICO BIT(3)
 
 /*
  * Estrutura principal do grafo.

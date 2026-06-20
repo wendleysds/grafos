@@ -82,50 +82,46 @@ struct vertice *criar_vertice(struct grafo *grafo, char vertice_nome[MAXIMO_VERT
  *   0 em caso de sucesso.
  *   1 em caso de falha.
  */
-int grafo_adicionar_aresta(struct grafo* grafo, struct vertice* de, struct vertice* para, int peso) {
-	struct aresta *aresta = malloc(sizeof(struct aresta));
+int grafo_adicionar_aresta(struct grafo *grafo, struct vertice *de, struct vertice *para, int peso) {
+	struct aresta *aresta;
+	
+	if (!(grafo->flags & FLAG_MULTIGRAFO)) {
+		struct aresta *tmp;
 
-	if(grafo->flags & FLAG_DIRECIONADO){
-		if (aresta) {
-			aresta->peso = peso;
-			aresta->para = para;
-
-			INIT_LIST_HEAD(&aresta->nos);
-
-			list_add_tail(&aresta->nos, &de->arestas);
-
-			return 0;
-		}
-	}else{
-		/* Para grafos não direcionados, criamos a aresta em ambos os sentidos */
-		struct aresta *aresta_reversa = malloc(sizeof(struct aresta));
-
-		if (aresta && aresta_reversa) {
-			/* A -> B */
-			aresta->peso = peso;
-			aresta->para = para;
-			INIT_LIST_HEAD(&aresta->nos);
-			list_add_tail(&aresta->nos, &de->arestas);
-
-			/* B -> A */
-			aresta_reversa->peso = peso;
-			aresta_reversa->para = de;
-			INIT_LIST_HEAD(&aresta_reversa->nos);
-			list_add_tail(&aresta_reversa->nos, &para->arestas);
-
-			return 0;
-		}
-
-		if (aresta) {
-			free(aresta);
-		}
-
-		if (aresta_reversa) {
-			free(aresta_reversa);
+		list_for_each_entry(tmp, &de->arestas, nos) {
+			if (tmp->para == para) {
+				return 1;
+			}
 		}
 	}
 
-	return 1;
+	aresta = malloc(sizeof(*aresta));
+
+	if (!aresta) {
+		return 1;
+	}
+
+	aresta->peso = peso;
+	aresta->para = para;
+	INIT_LIST_HEAD(&aresta->nos);
+	list_add_tail(&aresta->nos, &de->arestas);
+
+	if (!(grafo->flags & FLAG_DIRECIONADO)) {
+		struct aresta *rev = malloc(sizeof(*rev));
+
+		if (!rev) {
+			list_remove(&aresta->nos);
+			free(aresta);
+			return 1;
+		}
+
+		rev->peso = peso;
+		rev->para = de;
+		INIT_LIST_HEAD(&rev->nos);
+		list_add_tail(&rev->nos, &para->arestas);
+	}
+
+	return 0;
 }
 
 /*
