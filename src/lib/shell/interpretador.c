@@ -107,6 +107,10 @@ static int ajuda(int argc, char** argv){
 REGISTRAR_COMANDO(
 	ajuda,
 	"Ajuda o usuário mostrando os comandos disponíveis e oque eles fazem\n"
+	"Em relação aos argumentos\n"
+	"  [...]: lista\n"
+	"  <...>: texto/string\n"
+	"  {...}: item/opcão/adicional\n"
 	"uso: ajuda [EXPRESSAO]",
 	ajuda
 );
