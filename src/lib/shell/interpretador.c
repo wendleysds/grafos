@@ -19,10 +19,21 @@ static int separar_argumentos(char* line, char** argv, int max){
 
 		argv[argc++] = line;
 
-		while(*line && !isblank(*line)) line++;
-		if(*line){
-			*line = '\0';
+		if(*line == '"' || *line == '\''){
+			char quote = *line;
 			line++;
+			argv[argc - 1] = line;
+			while(*line && *line != quote) line++;
+			if(*line){
+				*line = '\0';
+				line++;
+			}
+		} else {
+			while(*line && !isblank(*line)) line++;
+			if(*line){
+				*line = '\0';
+				line++;
+			}
 		}
 	}
 
