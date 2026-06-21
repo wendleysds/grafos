@@ -25,7 +25,7 @@ static inline struct node* alloca_no(int valor){
         memset(node, 0x0, sizeof(struct node));
         node->valor = valor;
         node->id = next_id();
-        INIT_LIST_HEAD(&node->list);
+        INIT_LIST_HEAD(&node->lista);
     }
 
     return node;
@@ -41,7 +41,7 @@ static inline struct node* alloca_no(int valor){
  * Complexidade:
  *   O(h)
  */
-static inline struct node* subarvore_maior_valor(struct node* subarvore){
+struct node* subarvore_maior_valor(struct node* subarvore){
     struct node *anterior, *atual = subarvore;
     while(atual){
         anterior = atual;
@@ -61,7 +61,7 @@ static inline struct node* subarvore_maior_valor(struct node* subarvore){
  * Complexidade:
  *   O(h)
  */
-static inline struct node* subarvore_menor_valor(struct node* subarvore){
+struct node* subarvore_menor_valor(struct node* subarvore){
     struct node *anterior, *atual = subarvore;
     while(atual){
         anterior = atual;
@@ -88,7 +88,7 @@ static inline struct node* subarvore_menor_valor(struct node* subarvore){
  * Complexidade:
  *   O(N)
  */
-static inline struct node* subarvore_antecessor(struct node* subarvore){
+struct node* subarvore_antecessor(struct node* subarvore){
     if(subarvore->esquerda){
         /* O predecessor é o maior da subárvore esquerda */
         return subarvore_maior_valor(subarvore->esquerda);
@@ -125,7 +125,7 @@ static inline struct node* subarvore_antecessor(struct node* subarvore){
  * Complexidade:
  *   O(N)
  */
-static inline struct node* subarvore_sucessor(struct node* subarvore){
+struct node* subarvore_sucessor(struct node* subarvore){
     if(subarvore->direita){
         /* O sucessor é o menor da subárvore direita */
         return subarvore_menor_valor(subarvore->direita);
@@ -202,6 +202,7 @@ struct arvore* criar_arvore_binaria(void){
     if(arvore){
         memset(arvore, 0x0, sizeof(struct arvore));
         INIT_LIST_HEAD(&arvore->nos);
+		INIT_LIST_HEAD(&arvore->lista);
     }
 
     return arvore;
@@ -213,7 +214,7 @@ struct arvore* criar_arvore_binaria(void){
  **/
 void destruir_arvore_binaria(struct arvore* arvore){
     struct node *tmp, *no;
-    list_for_each_entry_safe(no, tmp, &arvore->nos, list){
+    list_for_each_entry_safe(no, tmp, &arvore->nos, lista){
         free(no);
     }
 
@@ -261,7 +262,7 @@ int adicionar_arvore_binaria(struct arvore* arvore, int valor) {
     }
 
     novo->pai = anterior;
-    list_add(&arvore->nos, &novo->list);
+    list_add(&arvore->nos, &novo->lista);
 
     return 0;
 }
@@ -343,7 +344,7 @@ int remover_arvore_binaria(struct arvore* arvore, int valor){
     }
 
 out:
-    list_remove(&alvo->list);
+    list_remove(&alvo->lista);
     free(alvo);
     return 0;
 }
