@@ -202,7 +202,6 @@ struct arvore* criar_arvore_binaria(void){
     if(arvore){
         memset(arvore, 0x0, sizeof(struct arvore));
         INIT_LIST_HEAD(&arvore->nos);
-		INIT_LIST_HEAD(&arvore->lista);
     }
 
     return arvore;

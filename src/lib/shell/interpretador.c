@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#define MAXIMO_ARGUMENTOS 8
+#define MAXIMO_ARGUMENTOS 16
 
 static char* skip_blank(char* p){
 	while(*p && isblank(*p)) p++;

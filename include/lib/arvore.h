@@ -45,15 +45,11 @@ struct node {
  *
  * nos:
  *   Nós pertecentes a árvore
- *
- * lista:
- *   Para uma lista global de árvores.
  */
 struct arvore {
     int tipo;
     struct node *raiz;
     struct list_head nos;
-	struct list_head lista;
 };
 
 struct arvore* criar_arvore_binaria(void);
