@@ -30,6 +30,7 @@
  */
 struct grafo {
 	uint8_t flags;
+	size_t quantidade_vertice;
 	struct list_head vertices;
 	struct list_head lista;
 };
@@ -59,6 +60,9 @@ struct aresta {
  * id:
  *   Identificador único.
  *
+ * visitado:
+ *   Flag para indicar se foi visitado.
+ *
  * nome:
  *   Nome legível do vértice.
  *
@@ -71,6 +75,7 @@ struct aresta {
  */
 struct vertice {
 	unsigned int id;
+	int visitado;
 	char nome[MAXIMO_VERTICE_NOME];
 	struct list_head arestas;
 	struct list_head nos;
@@ -89,5 +94,8 @@ int grafo_remove_aresta(struct grafo* grafo, struct vertice* de, struct vertice*
 void mostrar_grafo_lista(struct grafo* grafo);
 void mostrar_grafo_matriz(struct grafo* grafo);
 void mostrar_grafo_imagem(struct grafo* grafo);
+
+
+int grafo_buscar_em_profundidade(struct grafo* grafo, struct vertice* origem, struct vertice* destino);
 
 #endif

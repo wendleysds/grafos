@@ -18,6 +18,7 @@ struct grafo *criar_grafo(const char nome[MAXIMO_VERTICE_NOME], uint8_t flags) {
 	struct grafo *grafo = malloc(sizeof(struct grafo));
 
 	if (grafo) {
+		memset(grafo, 0x0, sizeof(struct grafo));
 		grafo->flags = flags;
 		INIT_LIST_HEAD(&grafo->vertices);
 		INIT_LIST_HEAD(&grafo->lista);
@@ -54,6 +55,7 @@ struct vertice *criar_vertice(struct grafo *grafo, const char vertice_nome[MAXIM
 	struct vertice *vertice = malloc(sizeof(struct vertice));
 
 	if (vertice) {
+		memset(vertice, 0x0, sizeof(struct vertice));
 		vertice->id = next_id();
 
 		strncpy(vertice->nome, vertice_nome, MAXIMO_VERTICE_NOME - 1);
@@ -63,6 +65,7 @@ struct vertice *criar_vertice(struct grafo *grafo, const char vertice_nome[MAXIM
 		INIT_LIST_HEAD(&vertice->nos);
 
 		list_add_tail(&vertice->nos, &grafo->vertices);
+		grafo->quantidade_vertice++;
 	}
 
 	return vertice;
@@ -259,6 +262,8 @@ void destruir_vertice(struct grafo *grafo, struct vertice *vertice) {
   libera_todas_arestas(vertice);
 
   list_remove(&vertice->nos);
+
+  grafo->quantidade_vertice--;
 
   free(vertice);
 }

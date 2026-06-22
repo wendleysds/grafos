@@ -74,6 +74,11 @@ static int listar_grafos(void){
 }
 
 static int grafo_criar(int argc, char** argv){
+	if(argc < 3) {
+		printf("Uso: grafo criar <nome>\n");
+		return 1;
+	}
+
 	uint8_t flags = 0;
 	const char* nome = argv[2];
 
@@ -400,6 +405,54 @@ static int grafo(int argc, char** argv){
 		return grafo_visualizar(argc, argv);
 	}
 
+	if(strcmp(subcomando, "caminho") == 0){
+		if(argc < 5){
+			printf("Uso: grafo caminho <algo> <origem> <destino>\n");
+			return 1;
+		}
+
+		const char* algo = argv[2];
+		const char* ori = argv[3];
+		const char* dest = argv[4];
+
+		struct vertice* origem = procura_vertice(selecionado->grafo, ori);
+		if(!origem){
+			printf("Origem \"%s\" não encontrado!\n", ori);
+			return 1;
+		}
+
+		struct vertice* destino =  procura_vertice(selecionado->grafo, dest);
+		if(!destino){
+			printf("Destino \"%s\" não encontrado!\n", dest);
+			return 1;
+		}
+
+		int falhou;
+
+		printf("Procurando caminho...\n");
+		if(strcmp(algo, "DFS") == 0){
+			falhou = grafo_buscar_em_profundidade(selecionado->grafo, origem, destino);
+		}else if(strcmp(algo, "BFS") == 0){
+			printf("Não suportado!\n");
+			return 1;
+		}else{
+			printf("Algoritimo \"%s\" não encontrado!\n", algo);
+		}
+
+		if(falhou){
+			if(falhou == -1){
+				printf("Stack overflow!\n");
+			}else{
+				printf("Caminho não encontrado\n");
+			}
+		}else{
+			printf("Caminho encontrado!\n");
+		}
+
+		return falhou;
+	}
+
+
 	if(strcmp(subcomando, "vertice") == 0){
 		return vertice_subcomando(argc, argv);
 	}
@@ -455,6 +508,11 @@ REGISTRAR_COMANDO(
 	"\n"
 	" - destruir <nome>\n"
 	"    Remove um grafo existente\n"
+	"\n"
+	" - caminho <algo> <origem> <destino>\n"
+	"    Procura o vertice pelo algoritimo escolhido, sendo eles:\n"
+	"       DFS (procura por profundidade)\n"
+	"       BFS (procura por largura)\n"
 	"\n"
 	" - vertice <operação> [nomes]\n"
 	"    Operações relacionada a vertices, sendo eles\n"
