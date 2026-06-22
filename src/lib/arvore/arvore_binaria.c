@@ -348,3 +348,50 @@ out:
     return 0;
 }
 
+static void pre_ordem(struct node* no){
+    if(no){
+        printf("%d ", no->valor);
+        pre_ordem(no->esquerda);
+        pre_ordem(no->direita);
+    }
+}
+
+static void pos_ordem(struct node* no){
+    if(no){
+        pos_ordem(no->esquerda);
+        printf("%d ", no->valor);
+        pos_ordem(no->direita);
+    }
+}
+
+static void em_ordem(struct node* no){
+    if(no){
+        em_ordem(no->esquerda);
+        em_ordem(no->direita);
+        printf("%d ", no->valor);
+    }
+}
+
+int arvore_printar(struct arvore* arvore, enum tipo_ordem ordem){
+    printf("[");
+
+    if(!arvore->raiz){
+        return 1;
+    }
+
+    switch(ordem){
+        case POS_ORDEM: 
+            pos_ordem(arvore->raiz);
+            break;
+        case PRE_ORDEM: 
+            pre_ordem(arvore->raiz);
+            break;
+        case EM_ORDEM:
+            em_ordem(arvore->raiz);
+            break;
+    }
+
+    printf("]\n");
+    return 0;
+}
+

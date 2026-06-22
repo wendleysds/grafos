@@ -52,6 +52,12 @@ struct arvore {
     struct list_head nos;
 };
 
+enum tipo_ordem {
+    POS_ORDEM,
+    PRE_ORDEM,
+    EM_ORDEM
+};
+
 struct arvore* criar_arvore_binaria(void);
 void destruir_arvore_binaria(struct arvore* arvore);
 int adicionar_arvore_binaria(struct arvore* arvore, int valor);
@@ -64,5 +70,7 @@ struct node* subarvore_menor_valor(struct node* subarvore);
 
 struct node* subarvore_antecessor(struct node* subarvore);
 struct node* subarvore_sucessor(struct node* subarvore);
+
+int arvore_printar(struct arvore* arvore, enum tipo_ordem ordem);
 
 #endif

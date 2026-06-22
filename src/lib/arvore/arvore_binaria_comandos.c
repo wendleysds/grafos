@@ -264,6 +264,53 @@ static int arvore_procurar(int argc, char** argv){
 	return 1;
 }
 
+static int arvore_visualizar(int argc, char** argv){
+	if(argc < 3) {
+		printf("Uso: arvore visualizar <?nome> <formato>\n");
+		return 1;
+	}
+
+	struct contexto* contexto = NULL;
+	const char* tipo = NULL;
+	if(argc == 3){
+		contexto = selecionado;
+		tipo = argv[2];
+	}else {
+		contexto = contexto_procurar(argv[2]);
+		tipo = argv[3];
+	}
+
+	if(contexto == NULL){
+		printf("Árvore não encontrada!");
+		return 1;
+	}
+
+	enum tipo_ordem ordem;
+
+	if(strcmp(tipo, "pre-ordem") == 0){
+		ordem = PRE_ORDEM;
+	}
+
+	else if(strcmp(tipo, "pos-ordem") == 0){
+		ordem = POS_ORDEM;
+	}
+
+	else if(strcmp(tipo, "em-ordem") == 0){
+		ordem = EM_ORDEM;
+	}
+
+	else if(strcmp(tipo, "imagem") == 0){
+		return 1;
+	}
+
+	else {
+		printf("Opção \"%s\" nao encontrada! veja \"ajuda arvore\"\n", tipo);
+		return 1;
+	}
+
+	return arvore_printar(contexto->arvore, ordem);
+}
+
 static int arvore(int argc, char** argv){
 	if(argc < 2){
 		listar_contextos();
@@ -290,7 +337,7 @@ static int arvore(int argc, char** argv){
 	}
 
 	if(strcmp(subcomando, "visualizar") == 0){
-		return 1;
+		return arvore_visualizar(argc, argv);
 	}
 
 	if(strcmp(subcomando, "inserir") == 0){
@@ -305,7 +352,7 @@ static int arvore(int argc, char** argv){
 		return arvore_remover(argc, argv);
 	}
 
-	printf("Subcomando \"%s\" não encontrado! veja \"ajuda grafo\"\n", subcomando);
+	printf("Ação \"%s\" não encontrado! veja \"ajuda arvore\"\n", subcomando);
 	return 1;
 }
 
@@ -323,7 +370,7 @@ REGISTRAR_COMANDO(
 	" - destruir <nome>\n"
 	"    Destroi uma árvore existente\n"
 	"\n"
-	" - visualizar <?nome> <tipo>\n"
+	" - visualizar <?nome> <formato>\n"
 	"    Exibe a árvore em um formato, sendo eles:\n"
 	"      pre-ordem\n"
 	"      pos-ordem\n"

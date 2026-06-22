@@ -1,3 +1,5 @@
+TARGET = $(BUILD_DIR)/programa
+
 CC := gcc
 
 SRC_DIR = ./src
@@ -18,14 +20,16 @@ else
     MAKEFLAGS += --no-print-directory
 endif
 
+$(TARGET): $(SRC_OBJS)
+	$(Q)$(CC) -o $@ $^
+	@echo "  BIN:   $@"
+
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	@echo "  CC     $<"
 	$(Q)$(CC) $(CFLAGS) -c $< -o $@
 
-all: $(SRC_OBJS)
-	$(Q)$(CC) -o $(BUILD_DIR)/grafo $^
-	@echo "  BIN:   $(BUILD_DIR)/grafo"
+all: $(TARGET)
 
 clean:
 	rm -rf $(BUILD_DIR)
