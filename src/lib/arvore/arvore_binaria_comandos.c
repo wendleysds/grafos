@@ -161,16 +161,17 @@ static int arvore_destruir(int argc, char** argv){
 
 	list_remove(&alvo->lista);
 
-	if(selecionado == alvo){
-		printf("Árvore em operação removida! selecione outra\n");
-		selecionado = NULL;
-	}
-
 	destruir_arvore_binaria(alvo->arvore);
 	free(alvo->nome);
 	free(alvo);
 
-	printf("Árvore \"%s\" destruida!\n", nome);
+	if(selecionado == alvo){
+		printf("Árvore \"%s\" (em operação) destruido!\n", nome);
+		selecionado = NULL;
+	}else{
+		printf("Árvore \"%s\" destruido!\n", nome);
+	}
+
 	return 0;
 }
 

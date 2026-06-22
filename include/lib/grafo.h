@@ -30,7 +30,6 @@
  */
 struct grafo {
 	uint8_t flags;
-	char nome[MAXIMO_VERTICE_NOME];
 	struct list_head vertices;
 	struct list_head lista;
 };

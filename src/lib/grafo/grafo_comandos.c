@@ -1,18 +1,25 @@
+#include "list.h"
 #include <lib/grafo.h>
 #include <lib/shell.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-static LIST_HEAD(grafos);
-
-static struct grafo* selecionado = NULL;
-
-static inline struct grafo* procurar_grafo(const char* nome){
+struct contexto {
+	char* nome;
 	struct grafo* grafo;
-	list_for_each_entry(grafo, &grafos, lista){
-		if(strcmp(grafo->nome, nome) == 0){
-			return grafo;
+	struct list_head lista;
+};
+
+static LIST_HEAD(contextos);
+
+static struct contexto* selecionado = NULL;
+
+static inline struct contexto* procurar_contexto(const char* nome){
+	struct contexto* contexto;
+	list_for_each_entry(contexto, &contextos, lista){
+		if(strcmp(contexto->nome, nome) == 0){
+			return contexto;
 		}
 	}
 
@@ -20,16 +27,18 @@ static inline struct grafo* procurar_grafo(const char* nome){
 } 
 
 static int listar_grafos(void){
-	struct grafo* pos;
+	struct contexto* pos;
+	struct grafo* grafo;
 
-	if(list_empty(&grafos)){
+	if(list_empty(&contextos)){
 		printf("Nenhum grafo criado! veja \"ajuda grafo\"\n");
 		return 1;
 	}
 
 	int i = 1;
 	printf("Grafos (selecionado, posicao, nome, atributos):\n");
-	list_for_each_entry(pos, &grafos, lista){
+	list_for_each_entry(pos, &contextos, lista){
+		grafo = pos->grafo;
 
 		if(pos == selecionado){
 			printf(" * ");
@@ -39,19 +48,20 @@ static int listar_grafos(void){
 
 		printf("%d: \"%s\"; ", i++, pos->nome);
 
-		if(!(pos->flags & FLAG_PONDERADO)){
+
+		if(!(grafo->flags & FLAG_PONDERADO)){
 			printf("Não ");
 		}
 
 		printf("PO; ");
 
-		if(!(pos->flags & FLAG_DIRECIONADO)){
+		if(!(grafo->flags & FLAG_DIRECIONADO)){
 			printf("Não ");
 		}
 
 		printf("DI; ");
 
-		if(!(pos->flags & FLAG_MULTIGRAFO)){
+		if(!(grafo->flags & FLAG_MULTIGRAFO)){
 			printf("Não ");
 		}
 
@@ -66,10 +76,11 @@ static int listar_grafos(void){
 static int grafo_criar(int argc, char** argv){
 	uint8_t flags = 0;
 	const char* nome = argv[2];
-	struct grafo* grafo;
 
-	list_for_each_entry(grafo, &grafos, lista){
-		if(strcmp(grafo->nome, nome) == 0){
+	struct contexto* contexto;
+	struct grafo* grafo;
+	list_for_each_entry(contexto, &contextos, lista){
+		if(strcmp(contexto->nome, nome) == 0){
 			printf("Já possui um grafo com este nome!\n");
 			return 1;
 		}
@@ -97,20 +108,38 @@ static int grafo_criar(int argc, char** argv){
 		return 1;
 	}
 
-	grafo = criar_grafo(nome, flags);
-	if(!grafo){
+	contexto = malloc(sizeof(struct contexto));
+	if(!contexto){
 		perror("Erro ao alocar grafo!\n");
 		return 1;
 	}
 
-	printf("grafo \"%s\" criado com sucesso!\n", grafo->nome);
-
-	if(selecionado == NULL){
-		printf("Automaticamente selecionado \"%s\", veja \"ajuda grafo\"\n", grafo->nome);
-		selecionado = grafo;
+	contexto->nome = strdup(nome);
+	if(!contexto->nome){
+		free(contexto);
+		perror("Erro ao alocar grafo!\n");
+		return 1;
 	}
 
-	list_add_tail(&grafo->lista, &grafos);
+	grafo = criar_grafo(nome, flags);
+	if(!grafo){
+		free(contexto->nome);
+		free(contexto);
+		perror("Erro ao alocar grafo!\n");
+		return 1;
+	}
+
+	INIT_LIST_HEAD(&contexto->lista);
+
+	contexto->grafo = grafo;
+	list_add(&contexto->lista, &contextos);
+
+	printf("grafo \"%s\" criado com sucesso!\n", contexto->nome);
+
+	if(selecionado == NULL){
+		printf("Automaticamente selecionado \"%s\", veja \"ajuda grafo\"\n", contexto->nome);
+		selecionado = contexto;
+	}
 
 	return 0;
 }
@@ -122,17 +151,17 @@ static inline int grafo_selecionar(int argc, char** argv){
 	}
 
 	const char* alvo = argv[2];
-	struct grafo* grafo;
+	struct contexto* contexto;
 
 	if(strcmp(selecionado->nome, alvo) == 0){
 		printf("Grafo já selecionado\n");
 		return 0;
 	}
 
-	grafo = procurar_grafo(alvo);
-	if(grafo){
-		printf("Selecionado \"%s\"\n", grafo->nome);
-		selecionado = grafo;
+	contexto = procurar_contexto(alvo);
+	if(contexto){
+		printf("Selecionado \"%s\"\n", contexto->nome);
+		selecionado = contexto;
 		return 0;
 	}
 
@@ -146,26 +175,27 @@ static inline int grafo_destruir(int argc, char** argv){
 		return 1;
 	}
 
-	const char* alvo = argv[2];
-	struct grafo* grafo;
-
-	list_for_each_entry(grafo, &grafos, lista){
-		if(strcmp(grafo->nome, alvo) == 0){
-			list_remove(&grafo->lista);
-
-			if(selecionado == grafo){
-				printf("Grafo em operação removido! selecione outro\n");
-				selecionado = NULL;
-			}
-
-			destruir_grafo(grafo);
-			printf("Grafo \"%s\" destruido!\n", alvo);
-			return 0;
-		}
+	const char* nome = argv[2];
+	struct contexto* alvo = procurar_contexto(nome);
+	if(!alvo){
+		printf("Grafo \"%s\" não encontrado!\n", nome);
+		return 1;
 	}
 
-	printf("Grafo \"%s\" não encontrado!\n", alvo);
-	return 1;
+	list_remove(&alvo->lista);
+
+	free(alvo->nome);
+	destruir_grafo(alvo->grafo);
+	free(alvo);
+
+	if(selecionado == alvo){
+		printf("Grafo \"%s\" (em operação) destruido!\n", nome);
+		selecionado = NULL;
+	}else{
+		printf("Grafo \"%s\" destruido!\n", nome);
+	}
+
+	return 0;
 }
 
 static int vertice_subcomando(int argc, char** argv){
@@ -179,14 +209,14 @@ static int vertice_subcomando(int argc, char** argv){
 	if(strcmp(operacao, "criar") == 0){
 		for(int i = 3; i < argc; i++){
 			const char* nome = argv[i];
-			struct vertice* vertice = procura_vertice(selecionado, nome);
+			struct vertice* vertice = procura_vertice(selecionado->grafo, nome);
 
 			if(vertice){
 				printf("Vertice \"%s\" ja existe!\n", nome);
 				continue;
 			}
 
-			if(criar_vertice(selecionado, nome) == NULL){
+			if(criar_vertice(selecionado->grafo, nome) == NULL){
 				printf("Falha ao criar vertice \"%s\"!\n", nome);
 				return 1;
 			}
@@ -200,14 +230,14 @@ static int vertice_subcomando(int argc, char** argv){
 	if(strcmp(operacao, "remover") == 0){
 		for(int i = 3; i < argc; i++){
 			const char* nome = argv[i];
-			struct vertice* vertice = procura_vertice(selecionado, nome);
+			struct vertice* vertice = procura_vertice(selecionado->grafo, nome);
 
 			if(!vertice){
 				printf("Vertice \"%s\" não encontrada!\n", nome);
 				continue;
 			}
 
-			destruir_vertice(selecionado, vertice);
+			destruir_vertice(selecionado->grafo, vertice);
 
 			printf("Vertice \"%s\" removido com sucesso!\n", nome);
 		}
@@ -221,7 +251,7 @@ static int vertice_subcomando(int argc, char** argv){
 
 static int aresta_subcomando(int argc, char** argv){
 	if(argc < 5){
-		if(!(selecionado->flags & FLAG_PONDERADO) && argc != 5){
+		if(!(selecionado->grafo->flags & FLAG_PONDERADO) && argc != 5){
 			printf("Uso: grafo aresta <criar|remover> <origem> <destino> <peso?>\n");
 			return 1;
 		}
@@ -231,13 +261,13 @@ static int aresta_subcomando(int argc, char** argv){
 	const char* de = argv[3];
 	const char* para = argv[4];
 
-	struct vertice* de_v = procura_vertice(selecionado, de);
+	struct vertice* de_v = procura_vertice(selecionado->grafo, de);
 	if(!de_v) {
 		printf("Vertice de origem \"%s\" não encontrado!\n", de);
 		return 1;
 	}
 
-	struct vertice* para_v = procura_vertice(selecionado, para);
+	struct vertice* para_v = procura_vertice(selecionado->grafo, para);
 	if(!para_v) {
 		printf("Vertice de origem \"%s\" não encontrado!\n", de);
 		return 1;
@@ -251,7 +281,7 @@ static int aresta_subcomando(int argc, char** argv){
 
 		int peso = 0;
 
-		if(argc == 5 && selecionado->flags & FLAG_PONDERADO){
+		if(argc == 5 && selecionado->grafo->flags & FLAG_PONDERADO){
 			printf("Peso não fornecido!\n");
 			return 1;
 		}
@@ -265,7 +295,7 @@ static int aresta_subcomando(int argc, char** argv){
 			}
 		}
 
-		if(grafo_adicionar_aresta(selecionado, de_v, para_v, peso) != 0){
+		if(grafo_adicionar_aresta(selecionado->grafo, de_v, para_v, peso) != 0){
 			printf("Falha ao criar aresta de \"%s\" para \"%s\"!\n", de, para);
 			return 1;
 		}
@@ -280,7 +310,7 @@ static int aresta_subcomando(int argc, char** argv){
 			return 1;
 		}
 
-		if(grafo_remove_aresta(selecionado, de_v, para_v) != 0){
+		if(grafo_remove_aresta(selecionado->grafo, de_v, para_v) != 0){
 			printf("Falha ao remover aresta de \"%s\" para \"%s\"!\n", de, para);
 			return 1;
 		}
@@ -299,38 +329,38 @@ static int grafo_visualizar(int argc, char** argv){
 		return 1;
 	}
 
-	struct grafo* grafo = NULL;
+	struct contexto* contexto = NULL;
 	const char* tipo = NULL;
 
 	if(argc == 3){
-		grafo = selecionado;
+		contexto = selecionado;
 		tipo = argv[2];
 	}else {
-		grafo = procurar_grafo(argv[2]);
+		contexto = procurar_contexto(argv[2]);
 		tipo = argv[3];
 	}
 
-	if(grafo == NULL){
+	if(contexto == NULL){
 		printf("Grafo não encontrado!");
 		return 1;
 	}
 
 	if(strcmp(tipo, "vertices") == 0){
 		struct vertice* vertice;
-		printf("Vertices do grafo \"%s\" (id, nome) \n", grafo->nome);
-		list_for_each_entry(vertice, &grafo->vertices, nos){
+		printf("Vertices do grafo \"%s\" (id, nome) \n", contexto->nome);
+		list_for_each_entry(vertice, &contexto->grafo->vertices, nos){
 			printf("  %d; %s\n", vertice->id, vertice->nome);
 		}
 		return 0;
 	}
 
 	if(strcmp(tipo, "lista") == 0){
-		mostrar_grafo_lista(grafo);
+		mostrar_grafo_lista(contexto->grafo);
 		return 0;
 	}
 
 	if(strcmp(tipo, "matriz") == 0){
-		mostrar_grafo_matriz(grafo);
+		mostrar_grafo_matriz(contexto->grafo);
 		return 0;
 	}
 
@@ -361,13 +391,13 @@ static int grafo(int argc, char** argv){
 		return grafo_destruir(argc, argv);
 	}
 
-	if(strcmp(subcomando, "visualizar") == 0){
-		return grafo_visualizar(argc, argv);
-	}
-
 	if(selecionado == NULL){
 		printf("Nenhum grafo selecionado! veja \"ajuda grafo\"\n");
 		return 1;
+	}
+
+	if(strcmp(subcomando, "visualizar") == 0){
+		return grafo_visualizar(argc, argv);
 	}
 
 	if(strcmp(subcomando, "vertice") == 0){
@@ -380,12 +410,12 @@ static int grafo(int argc, char** argv){
 	
 	/* Atalhos */
 	if(strcmp(subcomando, "lista") == 0){
-		mostrar_grafo_lista(selecionado);
+		mostrar_grafo_lista(selecionado->grafo);
 		return 0;
 	}
 
 	if(strcmp(subcomando, "matriz") == 0){
-		mostrar_grafo_matriz(selecionado);
+		mostrar_grafo_matriz(selecionado->grafo);
 		return 0;
 	}
 
@@ -444,9 +474,3 @@ REGISTRAR_COMANDO(
 	"O grafo selecionado e usado por comandos de vertices e arestas.",
 	grafo
 );
-
-/*
-
-
-static int mostrar_grafo(int argc, char** argv){return 1;}
-*/

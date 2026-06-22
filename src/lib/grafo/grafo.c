@@ -18,9 +18,6 @@ struct grafo *criar_grafo(const char nome[MAXIMO_VERTICE_NOME], uint8_t flags) {
 	struct grafo *grafo = malloc(sizeof(struct grafo));
 
 	if (grafo) {
-		strncpy(grafo->nome, nome, MAXIMO_VERTICE_NOME - 1);
-		grafo->nome[MAXIMO_VERTICE_NOME - 1] = '\0';
-
 		grafo->flags = flags;
 		INIT_LIST_HEAD(&grafo->vertices);
 		INIT_LIST_HEAD(&grafo->lista);
