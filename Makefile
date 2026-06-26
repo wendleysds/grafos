@@ -21,6 +21,7 @@ else
 endif
 
 $(TARGET): $(SRC_OBJS)
+	@echo "  BUILD  $@"
 	$(Q)$(CC) -o $@ $^
 	@echo "  BIN:   $@"
 

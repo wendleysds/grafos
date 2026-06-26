@@ -78,7 +78,7 @@ static int listar_contextos(void){
 	return 0;
 }
 
-static int arvore_criar(int argc, char** argv){
+static int criar_arvore(int argc, char** argv){
 	if(argc < 3){
 		printf("Uso: arvore criar <nome>\n");
 		return 1;
@@ -90,7 +90,7 @@ static int arvore_criar(int argc, char** argv){
 		return 1;
 	}
 
-	struct arvore* arvore = criar_arvore_binaria();
+	struct arvore* arvore = arvore_criar(ARVORE_BINARIA);
 	if(!arvore){
 		free(contexto);
 		perror("Erro ao alocar árvore!\n");
@@ -121,7 +121,7 @@ static int arvore_criar(int argc, char** argv){
 	return 0;
 }
 
-static int arvore_selecionar(int argc, char** argv){
+static int selecionar_arvore(int argc, char** argv){
 	if(argc < 3) {
 		printf("Uso: arvore selecionar <nome>\n");
 		return 1;
@@ -146,7 +146,7 @@ static int arvore_selecionar(int argc, char** argv){
 	return 1;
 }
 
-static int arvore_destruir(int argc, char** argv){
+static int destruir_arvore(int argc, char** argv){
 	if(argc < 3) {
 		printf("Uso: arvore destruir <nome>\n");
 		return 1;
@@ -161,7 +161,7 @@ static int arvore_destruir(int argc, char** argv){
 
 	list_remove(&alvo->lista);
 
-	destruir_arvore_binaria(alvo->arvore);
+	arvore_destruir(alvo->arvore);
 	free(alvo->nome);
 	free(alvo);
 
@@ -175,7 +175,7 @@ static int arvore_destruir(int argc, char** argv){
 	return 0;
 }
 
-static int arvore_inserir(int argc, char** argv){
+static int inserir_arvore(int argc, char** argv){
 	if(argc < 3) {
 		printf("Uso: arvore inserir [valores]\n");
 		return 1;
@@ -190,10 +190,10 @@ static int arvore_inserir(int argc, char** argv){
 			continue;
 		}
 
-		int erro = adicionar_arvore_binaria(selecionado->arvore, valor);
+		int erro = arvore_inserir(selecionado->arvore, valor);
 	
 		if(erro){
-			struct node* tmp = procurar_arvore_binaria(selecionado->arvore, valor);
+			struct node* tmp = arvore_procurar(selecionado->arvore, valor);
 			if(tmp){
 				printf("Valor \"%d\" duplicado!\n", valor);
 			}else{
@@ -209,7 +209,7 @@ static int arvore_inserir(int argc, char** argv){
 	return 0;
 }
 
-static int arvore_remover(int argc, char** argv){
+static int remover_arvore(int argc, char** argv){
 	if(argc < 3) {
 		printf("Uso: arvore remover [valores]\n");
 		return 1;
@@ -224,7 +224,7 @@ static int arvore_remover(int argc, char** argv){
 			continue;
 		}
 
-		int erro = remover_arvore_binaria(selecionado->arvore, valor);
+		int erro = arvore_remover(selecionado->arvore, valor);
 	
 		if(erro){
 			printf("Valor \"%d\" não encontrado\n", valor);
@@ -237,7 +237,7 @@ static int arvore_remover(int argc, char** argv){
 	return 0;
 }
 
-static int arvore_procurar(int argc, char** argv){
+static int procurar_na_arvore(int argc, char** argv){
 	if(argc < 3) {
 		printf("Uso: arvore procurar <valor>\n");
 		return 1;
@@ -251,7 +251,7 @@ static int arvore_procurar(int argc, char** argv){
 		return 1;
 	}
 
-	struct node* no = procurar_arvore_binaria(selecionado->arvore, valor);
+	struct node* no = arvore_procurar(selecionado->arvore, valor);
 
 	if(!no){
 		printf("Valor \"%d\" não encontrado!", valor);
@@ -264,7 +264,7 @@ static int arvore_procurar(int argc, char** argv){
 	return 1;
 }
 
-static int arvore_visualizar(int argc, char** argv){
+static int visualizar_arvore(int argc, char** argv){
 	if(argc < 3) {
 		printf("Uso: arvore visualizar <?nome> <formato>\n");
 		return 1;
@@ -308,7 +308,7 @@ static int arvore_visualizar(int argc, char** argv){
 		return 1;
 	}
 
-	return arvore_printar(contexto->arvore, ordem);
+	return arvore_mostrar(contexto->arvore, ordem);
 }
 
 static int arvore(int argc, char** argv){
@@ -320,15 +320,15 @@ static int arvore(int argc, char** argv){
 	const char* subcomando = argv[1];
 
 	if(strcmp(subcomando, "criar") == 0){
-		return arvore_criar(argc, argv);
+		return criar_arvore(argc, argv);
 	}
 
 	if(strcmp(subcomando, "selecionar") == 0){
-		return arvore_selecionar(argc, argv);
+		return selecionar_arvore(argc, argv);
 	}
 
 	if(strcmp(subcomando, "destruir") == 0){
-		return arvore_destruir(argc, argv);
+		return destruir_arvore(argc, argv);
 	}
 
 	if(selecionado == NULL){
@@ -337,19 +337,19 @@ static int arvore(int argc, char** argv){
 	}
 
 	if(strcmp(subcomando, "visualizar") == 0){
-		return arvore_visualizar(argc, argv);
+		return visualizar_arvore(argc, argv);
 	}
 
 	if(strcmp(subcomando, "inserir") == 0){
-		return arvore_inserir(argc, argv);
+		return inserir_arvore(argc, argv);
 	}
 
 	if(strcmp(subcomando, "procurar") == 0){
-		return arvore_procurar(argc, argv);
+		return procurar_na_arvore(argc, argv);
 	}
 
 	if(strcmp(subcomando, "remover") == 0){
-		return arvore_remover(argc, argv);
+		return remover_arvore(argc, argv);
 	}
 
 	printf("Ação \"%s\" não encontrado! veja \"ajuda arvore\"\n", subcomando);
