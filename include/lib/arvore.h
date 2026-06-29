@@ -3,6 +3,11 @@
 
 #include <list.h>
 
+enum cor {
+    VERMELHO,
+    PRETO
+};
+
 /*
  * Representa um nó da árvore.
  *
@@ -28,7 +33,7 @@
 struct node {
     unsigned int id;
     int valor;
-    int cor;
+    enum cor cor;
 
     struct node *pai;
     struct node *direita, *esquerda;
