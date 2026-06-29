@@ -16,13 +16,13 @@
  * dentro do novo nó.
  *
  * O nó recebe:
- *   - ID único
- *   - Cor vermelha
- *   - Lista de parentes vazias
+ * - ID único
+ * - Cor vermelha
+ * - Lista de parentes vazias
  *
  * Retorna:
- *   Ponteiro para o nó criado.
- *   NULL em caso de falha de alocação.
+ * Ponteiro para o nó criado.
+ * NULL em caso de falha de alocação.
  */
 static inline struct node* alloca_no(int valor){
 	struct node* node = malloc(sizeof(struct node));
@@ -76,8 +76,8 @@ void rotacao_esquerda(struct arvore* arvore, struct node* x){
  *      y           x
  *     /           / \
  *    x    -->    A   y
- *   / \             / \
- *  A   B           B   C
+ *   / \         / \
+ *  A   B       B   C
  */
 void rotacao_direita(struct arvore* arvore, struct node* y){
 	struct node* x = y->esquerda;
@@ -100,6 +100,67 @@ void rotacao_direita(struct arvore* arvore, struct node* y){
 
 	x->direita = y;
 	y->pai = x;
+}
+
+/* Corrige as propriedades da árvore rubro-negra após uma inserção.
+  O novo nó é inserido inicialmente como VERMELHO, o que pode gerar
+  uma violação caso seu pai também seja vermelho. */
+void correcao_cores_inserir(struct arvore* arvore, struct node* no){
+	while (E_VERMELHO(no->pai)) {
+		struct node* avo = _avo(no);
+		struct node* tio = _tio(no);
+
+		/*
+		 * Caso 1: O tio também é vermelho.
+		 * A solução é apenas recolorir:
+		 * - Pai e tio tornam-se PRETOS.
+		 * - Avô torna-se VERMELHO.
+		 */
+		if (E_VERMELHO(tio)) {
+			no->pai->cor = PRETO;
+			tio->cor = PRETO;
+			avo->cor = VERMELHO;
+
+			/* Continua verificando a partir do avô. Pois pode ter 
+			   acontecido uma violação*/
+			no = avo;
+			continue;
+		}
+
+
+		/* CASOS 2 e 3 (tio é preto) */
+
+		/* Pai está à esquerda do avô. */
+		if (no->pai == avo->esquerdo) {
+
+			/* Caso 2 (Esquerda-Direita) */
+			if (no == no->pai->direita) {
+				no = no->pai;
+				rotacao_esquerda(arvore, no);
+			}
+
+			/* Caso 3  (Esquerda-Esquerda)*/
+			/* Recolore pai e avô e realiza rotação à direita no avô. */
+			no->pai->cor = PRETO;
+			avo->cor = VERMELHO;
+			rotacao_direita(arvore, avo);
+
+		} else { /* Pai está à direita do avô. */
+
+			/* Os casos são simétricos aos anteriores.*/
+			if (no == no->pai->esquerda) {
+				no = no->pai;
+				rotacao_direita(arvore, no);
+			}
+
+			no->pai->cor = PRETO;
+			avo->cor = VERMELHO;
+			rotacao_esquerda(arvore, avo);
+		}
+	}
+
+	/* A raiz é sempre preta.*/
+	arvore->raiz->cor = PRETO;
 }
 
 static int adicionar_arvore_rb(struct arvore* arvore, int valor) {
