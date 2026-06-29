@@ -49,6 +49,7 @@ static int adicionar_arvore_bst(struct arvore* arvore, int valor) {
 
     if(!arvore->raiz){
         arvore->raiz = novo;
+		list_add(&arvore->nos, &novo->lista);
         return 0;
     }
 

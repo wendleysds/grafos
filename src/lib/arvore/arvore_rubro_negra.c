@@ -231,6 +231,16 @@ static void correcao_cores_remover(struct arvore* arvore, struct node* x, struct
 			}
 
 			/*
+			 * Se não existe irmão, ele é tratado como preto
+			 * com filhos pretos. Isso faz o "duplo preto" subir.
+			 */
+			if(!irmao){
+				x = parent;
+				parent = x->pai;
+				continue;
+			}
+
+			/*
 			 * CASO 2
 			 *
 			 * O irmão é preto e ambos os seus filhos são pretos.
@@ -306,6 +316,16 @@ static void correcao_cores_remover(struct arvore* arvore, struct node* x, struct
 			}
 
 			/*
+			 * Se não existe irmão, ele é tratado como preto
+			 * com filhos pretos. Isso faz o "duplo preto" subir.
+			 */
+			if(!irmao){
+				x = parent;
+				parent = x->pai;
+				continue;
+			}
+
+			/*
 			 * CASO 2 (espelhado)
 			 */
 			if(E_PRETO(irmao->direita) && E_PRETO(irmao->esquerda)){
@@ -360,9 +380,9 @@ static int remover_arvore_rb(struct arvore* arvore, int valor){
 	// y será o nó que será fisicamente removido da árvore.
 	// Na maioria dos casos y == alvo, exceto quando o alvo possui
 	// dois filhos, onde seu sucessor é removido em seu lugar.
-	struct node* y = alvo;
+	struct node *y = alvo;
 
-	enum cor cor_original = alvo->cor;
+	enum cor cor_original = y->cor;
 
 	// x será o filho que substituirá y.
 	// Ele pode ser NULL.
