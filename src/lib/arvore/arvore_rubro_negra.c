@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <assert.h>
 
+#define E_VERMELHO(no) (no == NULL ? 0 : (no)->cor == VERMELHO)
+#define E_PRETO(no) (!E_VERMELHO(no))
+
 /*
  * Cria um novo no.
  *
@@ -32,6 +35,71 @@ static inline struct node* alloca_no(int valor){
 	}
 
 	return node;
+}
+
+
+/*
+ * Rotaciona a arvore para a esquerda.
+ *
+ *  x               y
+ *   \             / \
+ *    y    -->    x   C
+ *   / \         / \
+ *  B   C       A   B
+ */
+void rotacao_esquerda(struct arvore* arvore, struct node* x){
+	struct node* y = x->direita;
+
+	x->direita = y->esquerda;
+
+	if(y->esquerda){
+		y->esquerda->pai = x;
+	}
+
+	y->pai = x->pai;
+
+	if(!x->pai){
+		arvore->raiz = y;
+	}else if(x == x->pai->esquerda){
+		x->pai->esquerda = y;
+	}else {
+		x->pai->direita = y;
+	}
+
+	y->esquerda = x;
+	x->pai = y;
+}
+
+/*
+ * Rotaciona a árvore para a direita. (espelho da esquerda)
+ *
+ *      y           x
+ *     /           / \
+ *    x    -->    A   y
+ *   / \             / \
+ *  A   B           B   C
+ */
+void rotacao_direita(struct arvore* arvore, struct node* y){
+	struct node* x = y->esquerda;
+
+	y->esquerda = x->direita;
+
+	if(x->direita){
+		x->direita->pai = y;
+	}
+
+	x->pai = y->pai;
+
+	if(!y->pai){
+		arvore->raiz = x;
+	}else if(y == y->pai->direita){
+		y->pai->direita = x;
+	}else{
+		y->pai->esquerda = x;
+	}
+
+	x->direita = y;
+	y->pai = x;
 }
 
 static int adicionar_arvore_rb(struct arvore* arvore, int valor) {
