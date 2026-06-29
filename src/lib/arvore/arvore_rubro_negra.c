@@ -47,7 +47,7 @@ static inline struct node* alloca_no(int valor){
  *   / \         / \
  *  B   C       A   B
  */
-void rotacao_esquerda(struct arvore* arvore, struct node* x){
+static void rotacao_esquerda(struct arvore* arvore, struct node* x){
 	struct node* y = x->direita;
 
 	x->direita = y->esquerda;
@@ -79,7 +79,7 @@ void rotacao_esquerda(struct arvore* arvore, struct node* x){
  *   / \         / \
  *  A   B       B   C
  */
-void rotacao_direita(struct arvore* arvore, struct node* y){
+static void rotacao_direita(struct arvore* arvore, struct node* y){
 	struct node* x = y->esquerda;
 
 	y->esquerda = x->direita;
@@ -105,7 +105,7 @@ void rotacao_direita(struct arvore* arvore, struct node* y){
 /* Corrige as propriedades da árvore rubro-negra após uma inserção.
   O novo nó é inserido inicialmente como VERMELHO, o que pode gerar
   uma violação caso seu pai também seja vermelho. */
-void correcao_cores_inserir(struct arvore* arvore, struct node* no){
+static void correcao_cores_inserir(struct arvore* arvore, struct node* no){
 	while (E_VERMELHO(no->pai)) {
 		struct node* avo = _avo(no);
 		struct node* tio = _tio(no);
@@ -131,7 +131,7 @@ void correcao_cores_inserir(struct arvore* arvore, struct node* no){
 		/* CASOS 2 e 3 (tio é preto) */
 
 		/* Pai está à esquerda do avô. */
-		if (no->pai == avo->esquerdo) {
+		if (no->pai == avo->esquerda) {
 
 			/* Caso 2 (Esquerda-Direita) */
 			if (no == no->pai->direita) {
@@ -164,7 +164,43 @@ void correcao_cores_inserir(struct arvore* arvore, struct node* no){
 }
 
 static int adicionar_arvore_rb(struct arvore* arvore, int valor) {
-	return -1;
+	struct node* novo = alloca_no(valor);
+	if(!novo) return 1;
+
+	if(!arvore->raiz){
+		/* Raiz sempre é preta */
+		novo->cor = PRETO;
+		arvore->raiz = novo;
+		list_add(&arvore->nos, &novo->lista);
+		return 0;
+	}
+
+	struct node *atual = arvore->raiz, *anterior = NULL;
+	while(atual){
+		anterior = atual;
+		if(atual->valor > valor){
+			atual = atual->esquerda;
+		}else if(valor > atual->valor){
+			atual = atual->direita;
+		}else{
+			/* valor já existe: não inserir duplicatas */
+			free(novo);
+			return 1;
+		}
+	}
+
+	if(anterior->valor > valor){
+		anterior->esquerda = novo;
+	}else{
+		anterior->direita = novo;
+	}
+
+	novo->pai = anterior;
+	list_add(&arvore->nos, &novo->lista);
+
+	correcao_cores_inserir(arvore, novo);
+	
+	return 0;
 }
 
 static int remover_arvore_rb(struct arvore* arvore, int valor){
