@@ -79,8 +79,20 @@ static int listar_contextos(void){
 }
 
 static int criar_arvore(int argc, char** argv){
-	if(argc < 3){
-		printf("Uso: arvore criar <nome>\n");
+	if(argc < 4){
+		printf("Uso: arvore criar <tipo> <nome>\n");
+		return 1;
+	}
+
+	enum tipo_arvore tipo;
+	const char* tipo_str = argv[2];
+
+	if(strcmp(tipo_str, "BST") == 0){
+		tipo = ARVORE_BINARIA;
+	}else if(strcmp(tipo_str, "RB") == 0){
+		tipo = ARVORE_RUBRO_NEGRA;
+	}else{
+		printf("Tipo não encontrado!\n");
 		return 1;
 	}
 
@@ -90,14 +102,14 @@ static int criar_arvore(int argc, char** argv){
 		return 1;
 	}
 
-	struct arvore* arvore = arvore_criar(ARVORE_BINARIA);
+	struct arvore* arvore = arvore_criar(tipo);
 	if(!arvore){
 		free(contexto);
 		perror("Erro ao alocar árvore!\n");
 		return 1;
 	}
 
-	char* nome = strdup(argv[2]);
+	char* nome = strdup(argv[3]);
 	if(!nome){
 		free(contexto);
 		free(arvore);
@@ -159,15 +171,18 @@ static int destruir_arvore(int argc, char** argv){
 		return 1;
 	}
 
+	if(selecionado == alvo){
+		selecionado = NULL;
+	}
+
 	list_remove(&alvo->lista);
 
 	arvore_destruir(alvo->arvore);
 	free(alvo->nome);
 	free(alvo);
 
-	if(selecionado == alvo){
+	if(!selecionado){
 		printf("Árvore \"%s\" (em operação) destruido!\n", nome);
-		selecionado = NULL;
 	}else{
 		printf("Árvore \"%s\" destruido!\n", nome);
 	}
@@ -215,12 +230,12 @@ static int remover_arvore(int argc, char** argv){
 		return 1;
 	}
 
-	for(int i = 3; i < argc; i++){
+	for(int i = 2; i < argc; i++){
 		const char* valor_str = argv[i];
 		int valor;
 
 		if(sscanf(valor_str, "%d", &valor) < 1){
-			printf("Falha ao converter \"%s\" para inteiro!", valor_str);
+			printf("Falha ao converter \"%s\" para inteiro!\n", valor_str);
 			continue;
 		}
 
@@ -359,10 +374,12 @@ static int arvore(int argc, char** argv){
 REGISTRAR_COMANDO(
 	arvore,
 	"Principal comando de manipulacao de árvores\n"
-	"Uso: grafo <AÇÃO> [ARGUMENTOS]\n"
+	"Uso: arvore <AÇÃO> [ARGUMENTOS]\n"
 	"Ações:\n"
-	" - criar <nome>\n"
-	"    Cria uma nova árvore vazia\n"
+	" - criar <tipo> <nome>\n"
+	"    Cria uma nova do <tipo> árvore vazia, sendo eles:\n"
+	"       BST - Árvore binária de busca\n"
+	"       RB - Árvore rubro-negra\n"
 	"\n"
 	" - selecionar <nome>\n"
 	"    Seleciona uma árvore para operacoes\n"

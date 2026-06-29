@@ -6,6 +6,7 @@
 #include <assert.h>
 
 extern const struct arvore_operacoes arvore_bst_ops;
+extern const struct arvore_operacoes arvore_rb_ops;
 
 /*
  * Cria uma nova árvore vazia.
@@ -15,21 +16,24 @@ extern const struct arvore_operacoes arvore_bst_ops;
  *   NULL em caso de falha de alocação.
  */
 struct arvore* arvore_criar(enum tipo_arvore tipo){
-    struct arvore* arvore = malloc(sizeof(struct arvore));
-    if(arvore){
-        memset(arvore, 0x0, sizeof(struct arvore));
-        arvore->tipo = tipo;
-        INIT_LIST_HEAD(&arvore->nos);
+	struct arvore* arvore = malloc(sizeof(struct arvore));
+	if(arvore){
+		memset(arvore, 0x0, sizeof(struct arvore));
+		arvore->tipo = tipo;
+		INIT_LIST_HEAD(&arvore->nos);
 
-        if(tipo == ARVORE_BINARIA)
-            arvore->ops = &arvore_bst_ops;
-        else {
-            free(arvore);
-            return NULL;
-        }
-    }
+		if(tipo == ARVORE_BINARIA)
+			arvore->ops = &arvore_bst_ops;
+		else if (tipo == ARVORE_RUBRO_NEGRA) {
+			arvore->ops = &arvore_rb_ops;
+		}
+		else {
+			free(arvore);
+			return NULL;
+		}
+	}
 
-    return arvore;
+	return arvore;
 }
 
 /*
